@@ -53,7 +53,7 @@ parseFromMobileCallback(Vehicle* vehicle, RecvContainer recvFrame,
   uint8_t wayptPolygonSides;
   int     hotptInitRadius;
   int     responseTimeout = 1;
-  printf(userData);
+  printf("%s",userData);
   switch (mobile_data_id)
   {
     case 1:
