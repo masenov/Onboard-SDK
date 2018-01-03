@@ -44,8 +44,6 @@ tags
 
 .vagrant/
 .idea/
-bin/
-build/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -56,3 +54,27 @@ osdk-core/v1-1.0.0
 catkin_ws/devel/
 
 catkin_ws/\.catkin_workspace
+
+
+
+catkin_ws/build/
+
+build/install_manifest\.txt
+
+build/osdk-core/
+
+build/libs/
+
+build/bin/djiosdk-cameragimbal-sample
+
+build/bin/djiosdk-flightcontrol-sample
+
+build/bin/djiosdk-logging-sample
+
+build/bin/djiosdk-mfio-sample
+
+build/bin/djiosdk-mission-sample
+
+build/bin/djiosdk-mobile-sample
+
+build/bin/djiosdk-telemetry-sample
