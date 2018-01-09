@@ -29,6 +29,7 @@
  */
 
 #include "mobile_sample.hpp"
+#include <unistd.h>
 
 using namespace DJI;
 using namespace DJI::OSDK;
@@ -53,7 +54,36 @@ parseFromMobileCallback(Vehicle* vehicle, RecvContainer recvFrame,
   uint8_t wayptPolygonSides;
   int     hotptInitRadius;
   int     responseTimeout = 1;
-  printf("%s",userData);
+  //printf("%s",*(reinterpret_cast<uint16_t*>(&recvFrame.recvData.raw_ack_array)));
+  printf("test\n");
+
+  AckReturnToMobile mobileAck;
+  const uint8_t     cmd[] = { recvFrame.recvInfo.cmd_set,
+                          recvFrame.recvInfo.cmd_id };
+
+  ACK::ErrorCode ack;
+  mobileAck.cmdID = 0x05;
+  mobileAck.ack   = static_cast<uint16_t>(ack.data);
+  for (int i = 0; i < 100; i++) {
+      // We will reformat the cached drone version and send it back.
+      std::string hwVersionString(vehicle->getHwVersion());
+      std::string fwVersionString   = std::to_string(vehicle->getFwVersion());
+      //std::string versionString     = hwVersionString + ' ' + fwVersionString;
+      std::string versionString     = std::to_string(i);
+
+      char        tempRawString[38] = { 0 };
+      memcpy(&tempRawString, versionString.c_str(), versionString.length());
+      // Now pack this up into a mobile packet
+      VersionMobilePacket versionPack(0x01, &tempRawString[0]);
+
+      // And send it
+      vehicle->moc->sendDataToMSDK(reinterpret_cast<uint8_t*>(&versionPack),
+                                    sizeof(versionPack));
+      printf("Sending number %d\n", i);
+      usleep(1000000);
+      //vehicle->moc->sendDataToMSDK(reinterpret_cast<uint8_t*>(&mobileAck), sizeof(mobileAck));
+  }
+
   switch (mobile_data_id)
   {
     case 1:
