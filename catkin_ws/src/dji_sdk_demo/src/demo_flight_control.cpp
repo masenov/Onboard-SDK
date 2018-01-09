@@ -11,6 +11,8 @@
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
+#include <math.h>      
+#define PI 3.14159265
 
 const float deg2rad = C_PI/180.0;
 const float rad2deg = 180.0/C_PI;
@@ -58,45 +60,16 @@ int main(int argc, char** argv)
   bool obtain_control_result = obtain_control();
   bool takeoff_result;
   if(is_M100())
-  {
+  { 
     ROS_INFO("M100 taking off!");
     takeoff_result = M100monitoredTakeoff();
   }
-  else
-  {
-    ROS_INFO("A3/N3 taking off!");
-    takeoff_result = monitoredTakeoff();
-  }
-
-  if(takeoff_result)
-  {
-    square_mission.reset();
-    square_mission.start_gps_location = current_gps;
-    square_mission.setTarget(0, 20, 3, 60);
-    square_mission.state = 1;
-    ROS_INFO("##### Start route %d ....", square_mission.state);
-  }
+  double param, result;
+  param = 45.0;
+  result = tan ( param * PI / 180.0 );
 
   ros::spin();
   return 0;
-}
-
-// Helper Functions
-
-/*! Very simple calculation of local NED offset between two pairs of GPS
-/coordinates. Accurate when distances are small.
-!*/
-void
-localOffsetFromGpsOffset(geometry_msgs::Vector3&  deltaNed,
-                         sensor_msgs::NavSatFix& target,
-                         sensor_msgs::NavSatFix& origin)
-{
-  double deltaLon = target.longitude - origin.longitude;
-  double deltaLat = target.latitude - origin.latitude;
-
-  deltaNed.y = deltaLat * deg2rad * C_EARTH;
-  deltaNed.x = deltaLon * deg2rad * C_EARTH * cos(deg2rad*target.latitude);
-  deltaNed.z = target.altitude - origin.altitude;
 }
 
 
@@ -111,115 +84,25 @@ geometry_msgs::Vector3 toEulerAngle(geometry_msgs::Quaternion quat)
 
 void Mission::step()
 {
-  static int info_counter = 0;
-  geometry_msgs::Vector3     localOffset;
-
-  float speedFactor         = 2;
-  float yawThresholdInDeg   = 2;
-
-  float xCmd, yCmd, zCmd;
-
-  localOffsetFromGpsOffset(localOffset, current_gps, start_gps_location);
-
-  double xOffsetRemaining = target_offset_x - localOffset.x;
-  double yOffsetRemaining = target_offset_y - localOffset.y;
-  double zOffsetRemaining = target_offset_z - localOffset.z;
-
-  double yawDesiredRad     = deg2rad * target_yaw;
-  double yawThresholdInRad = deg2rad * yawThresholdInDeg;
-  double yawInRad          = toEulerAngle(current_atti).z;
-
-  info_counter++;
-  if(info_counter > 25)
-  {
-    info_counter = 0;
-    ROS_INFO("-----x=%f, y=%f, z=%f, yaw=%f ...", localOffset.x,localOffset.y, localOffset.z,yawInRad);
-    ROS_INFO("+++++dx=%f, dy=%f, dz=%f, dyaw=%f ...", xOffsetRemaining,yOffsetRemaining, zOffsetRemaining,yawInRad - yawDesiredRad);
-  }
-  if (abs(xOffsetRemaining) >= speedFactor)
-    xCmd = (xOffsetRemaining>0) ? speedFactor : -1 * speedFactor;
-  else
-    xCmd = xOffsetRemaining;
-
-  if (abs(yOffsetRemaining) >= speedFactor)
-    yCmd = (yOffsetRemaining>0) ? speedFactor : -1 * speedFactor;
-  else
-    yCmd = yOffsetRemaining;
-
-  zCmd = start_gps_location.altitude + target_offset_z;
+  double rollInRad = toEulerAngle(current_atti).x;
+  double pitchInRad = toEulerAngle(current_atti).y;
+  double yawInRad = toEulerAngle(current_atti).z;
+  ROS_INFO("-----roll=%f, pitch=%f, yaw=%f ...", rollInRad, pitchInRad, yawInRad);
+  double psi = acos( (cos(rollInRad)*cos(pitchInRad)) / ( sqrt ( pow(sin(pitchInRad)*cos(rollInRad),2) + pow(cos(pitchInRad)*sin(rollInRad),2) + pow(cos(pitchInRad)*cos(rollInRad),2))));
+  ROS_INFO("PSI: %f", psi);
+  double lambda = acos( (-cos(pitchInRad)*sin(rollInRad)) / ( sqrt ( pow(sin(pitchInRad)*cos(rollInRad),2) + pow(cos(pitchInRad)*sin(rollInRad),2))));
+  ROS_INFO("Lambda: %f", lambda);
+  double x = -sin(pitchInRad)*cos(rollInRad);
+  double y = -cos(pitchInRad)*sin(rollInRad);
+  double z = cos(pitchInRad)*cos(rollInRad);
+  ROS_INFO("X:%f, Y:%f, Z:%f", x, y, z);
+  if (x < 0) lambda = 2*PI - lambda;
+  ROS_INFO("Updated lambda: %f", lambda);
+  lambda = fmod(lambda + yawInRad,2*PI);
+  ROS_INFO("Final lambda: %f", lambda);
 
 
-  /*!
-   * @brief: if we already started breaking, keep break for 50 sample (1sec)
-   *         and call it done, else we send normal command
-   */
 
-  if (break_counter > 50)
-  {
-    ROS_INFO("##### Route %d finished....", state);
-    finished = true;
-    return;
-  }
-  else if(break_counter > 0)
-  {
-    sensor_msgs::Joy controlVelYawRate;
-    uint8_t flag = (DJISDK::VERTICAL_VELOCITY   |
-                DJISDK::HORIZONTAL_VELOCITY |
-                DJISDK::YAW_RATE            |
-                DJISDK::HORIZONTAL_GROUND   |
-                DJISDK::STABLE_ENABLE);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(0);
-    controlVelYawRate.axes.push_back(flag);
-
-    ctrlBrakePub.publish(controlVelYawRate);
-    break_counter++;
-    return;
-  }
-  else //break_counter = 0, not in break stage
-  {
-    sensor_msgs::Joy controlPosYaw;
-
-
-    controlPosYaw.axes.push_back(xCmd);
-    controlPosYaw.axes.push_back(yCmd);
-    controlPosYaw.axes.push_back(zCmd);
-    controlPosYaw.axes.push_back(yawDesiredRad);
-    ctrlPosYawPub.publish(controlPosYaw);
-  }
-
-  if (std::abs(xOffsetRemaining) < 0.5 &&
-      std::abs(yOffsetRemaining) < 0.5 &&
-      std::abs(zOffsetRemaining) < 0.5 &&
-      std::abs(yawInRad - yawDesiredRad) < yawThresholdInRad)
-  {
-    //! 1. We are within bounds; start incrementing our in-bound counter
-    inbound_counter ++;
-  }
-  else
-  {
-    if (inbound_counter != 0)
-    {
-      //! 2. Start incrementing an out-of-bounds counter
-      outbound_counter ++;
-    }
-  }
-
-  //! 3. Reset withinBoundsCounter if necessary
-  if (outbound_counter > 10)
-  {
-    ROS_INFO("##### Route %d: out of bounds, reset....", state);
-    inbound_counter  = 0;
-    outbound_counter = 0;
-  }
-
-  if (inbound_counter > 50)
-  {
-    ROS_INFO("##### Route %d start break....", state);
-    break_counter = 1;
-  }
 
 }
 
@@ -275,75 +158,8 @@ void attitude_callback(const geometry_msgs::QuaternionStamped::ConstPtr& msg)
 
 void gps_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  static ros::Time start_time = ros::Time::now();
-  ros::Duration elapsed_time = ros::Time::now() - start_time;
   current_gps = *msg;
-
-  // Down sampled to 50Hz loop
-  if(elapsed_time > ros::Duration(0.02))
-  {
-    start_time = ros::Time::now();
-    switch(square_mission.state)
-    {
-      case 0:
-        break;
-
-      case 1:
-        if(!square_mission.finished)
-        {
-          square_mission.step();
-        }
-        else
-        {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.setTarget(20, 0, 0, 0);
-          square_mission.state = 2;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
-        }
-        break;
-
-      case 2:
-        if(!square_mission.finished)
-        {
-          square_mission.step();
-        }
-        else
-        {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.setTarget(0, -20, 0, 0);
-          square_mission.state = 3;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
-        }
-        break;
-      case 3:
-        if(!square_mission.finished)
-        {
-          square_mission.step();
-        }
-        else
-        {
-          square_mission.reset();
-          square_mission.start_gps_location = current_gps;
-          square_mission.setTarget(-20, 0, 0, 0);
-          square_mission.state = 4;
-          ROS_INFO("##### Start route %d ....", square_mission.state);
-        }
-        break;
-      case 4:
-        if(!square_mission.finished)
-        {
-          square_mission.step();
-        }
-        else
-        {
-          ROS_INFO("##### Mission %d Finished ....", square_mission.state);
-          square_mission.state = 0;
-        }
-        break;
-    }
-  }
+  square_mission.step();
 }
 
 void flight_status_callback(const std_msgs::UInt8::ConstPtr& msg)
@@ -356,83 +172,6 @@ void display_mode_callback(const std_msgs::UInt8::ConstPtr& msg)
   display_mode = msg->data;
 }
 
-
-/*!
- * This function demos how to use the flight_status
- * and the more detailed display_mode (only for A3/N3)
- * to monitor the take off process with some error
- * handling. Note M100 flight status is different
- * from A3/N3 flight status.
- */
-bool
-monitoredTakeoff()
-{
-  ros::Time start_time = ros::Time::now();
-
-  if(!takeoff_land(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF)) {
-    return false;
-  }
-
-  ros::Duration(0.01).sleep();
-  ros::spinOnce();
-
-  // Step 1.1: Spin the motor
-  while (flight_status != DJISDK::FlightStatus::STATUS_ON_GROUND &&
-         display_mode != DJISDK::DisplayMode::MODE_ENGINE_START &&
-         ros::Time::now() - start_time < ros::Duration(5)) {
-    ros::Duration(0.01).sleep();
-    ros::spinOnce();
-  }
-
-  if(ros::Time::now() - start_time > ros::Duration(5)) {
-    ROS_ERROR("Takeoff failed. Motors are not spinnning.");
-    return false;
-  }
-  else {
-    start_time = ros::Time::now();
-    ROS_INFO("Motor Spinning ...");
-    ros::spinOnce();
-  }
-
-
-  // Step 1.2: Get in to the air
-  while (flight_status != DJISDK::FlightStatus::STATUS_IN_AIR &&
-          (display_mode != DJISDK::DisplayMode::MODE_ASSISTED_TAKEOFF || display_mode != DJISDK::DisplayMode::MODE_AUTO_TAKEOFF) &&
-          ros::Time::now() - start_time < ros::Duration(20)) {
-    ros::Duration(0.01).sleep();
-    ros::spinOnce();
-  }
-
-  if(ros::Time::now() - start_time > ros::Duration(20)) {
-    ROS_ERROR("Takeoff failed. Aircraft is still on the ground, but the motors are spinning.");
-    return false;
-  }
-  else {
-    start_time = ros::Time::now();
-    ROS_INFO("Ascending...");
-    ros::spinOnce();
-  }
-
-  // Final check: Finished takeoff
-  while ( (display_mode == DJISDK::DisplayMode::MODE_ASSISTED_TAKEOFF || display_mode == DJISDK::DisplayMode::MODE_AUTO_TAKEOFF) &&
-          ros::Time::now() - start_time < ros::Duration(20)) {
-    ros::Duration(0.01).sleep();
-    ros::spinOnce();
-  }
-
-  if ( display_mode != DJISDK::DisplayMode::MODE_P_GPS || display_mode != DJISDK::DisplayMode::MODE_ATTITUDE)
-  {
-    ROS_INFO("Successful takeoff!");
-    start_time = ros::Time::now();
-  }
-  else
-  {
-    ROS_ERROR("Takeoff finished, but the aircraft is in an unexpected mode. Please connect DJI GO.");
-    return false;
-  }
-
-  return true;
-}
 
 
 /*!
@@ -461,7 +200,6 @@ M100monitoredTakeoff()
     ros::Duration(0.01).sleep();
     ros::spinOnce();
   }
-
   if(flight_status != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR ||
       current_gps.altitude - home_altitude < 1.0)
   {
@@ -471,9 +209,10 @@ M100monitoredTakeoff()
   else
   {
     start_time = ros::Time::now();
+    ROS_INFO("%f",current_gps.altitude);
+    ROS_INFO("%f",home_altitude);
     ROS_INFO("Successful takeoff!");
     ros::spinOnce();
   }
-
   return true;
 }
