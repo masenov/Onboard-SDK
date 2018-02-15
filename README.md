@@ -10,6 +10,17 @@ make
 
 Executables are located inside the build/bin folder
 
+**To install OSDK**
+
+cd build
+
+cmake ..
+
+make djiosdk-core
+
+sudo make install djiosdk-core
+
+
 **To build Onboard-SDK-ROS**
 
 cd catkin_ws/src
