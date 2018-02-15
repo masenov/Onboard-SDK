@@ -39,3 +39,7 @@ roslaunch dji_sdk sdk.launch
 And in another terminal...
 
 rosrun dji_sdk_demo demo_flight_control
+
+**To run wind estimation**
+
+rosrun dji_sdk_demo demo_flight_control
