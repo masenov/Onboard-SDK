@@ -1,0 +1,25 @@
+{"cfg":{"modes":{"xy_plot":{
+    "title":"XY Plot",
+    "machine":"machine_xy_plot",
+    "current_view":"main",
+    "views":{
+        "main":{
+            "layout":{
+                "trace":{
+                    "type":"Drawing_Surface",
+                    "size":[500,500],
+                    "pos":[10,10],
+                    "mode":"line",
+                    "refs":{
+                        "data":"trace"
+                    }
+                },
+                "back":{
+                    "size":[16,16],
+                    "on_click":["switch_mode('lobby')"],
+                    "text":"<"
+                }
+            }
+        }
+    }
+}}}}

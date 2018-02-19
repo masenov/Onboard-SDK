@@ -1,0 +1,40 @@
+{"cfg":{"modes":{"simple_meter":{
+    "machine":"machine_simple_meter",
+    "views":{
+        "main":{
+            "layout":{
+                "v_disp":{
+                    "type":"Panel",
+                    "size":"huge_disp",
+                    "font":"mono",
+                    "font_size":120,
+                    "pos":[256,242],
+                    "alterable":false,
+                    "text_colour":"cha",
+                    "refs":{"data":"voltage_text"}
+                },
+                "zero":{
+                    "type":"Button",
+                    "size":"big",
+                    "pos":[896,443],
+                    "text":"Zero",
+                    "on_click":["zero_current_channel()"]
+                },
+                "change_channel":{
+                    "type":"Button",
+                    "size":"big",
+                    "pos":[69,307],
+                    "strings":{"a":"Channel A", "b":"Channel B"},
+                    "on_click":["change_channel()"],
+                    "refs":{"text":"channel"}
+                },
+                "back":{
+                    "size":"tiny",
+                    "pos":[0,0],
+                    "text":"<",
+                    "on_click":["switch_mode('lobby')"]
+                }
+            }
+        }
+    }
+}}}}

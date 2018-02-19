@@ -1,0 +1,18 @@
+{
+    "cfg":
+    {
+        "modes":
+        {    
+            "lobby":
+            {    
+                "views":
+                {
+                    "main":
+                    {
+			"delete_widgets": [ "Sound","Lissajous"]
+                    }
+                }
+            }
+        }
+    }
+}

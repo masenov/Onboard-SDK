@@ -1,0 +1,163 @@
+{
+    "cfg":
+    {
+        "modes":
+        {
+            "triggered_logic":
+            {
+                "title":"Triggered Logic",
+                "machine":"machine_triggered_logic",
+                "current_view":"main",
+                "views":
+                {
+                    "main":
+                    {
+                        "layout":
+                        {
+                            "trace":{
+                                "type":"Logic_Display",
+                                "pos":[118,10],
+                                "size":[1000,508],
+                                "group":"display",
+                                "grid_spacing":"10%",
+                                "gutter":{"other":10,"bottom":15},
+                                "traces":{
+                                    "l0":{"bit":1,"y_offset":"3%","y_scale":35,"colour":"white"},
+                                    "l1":{"bit":2,"y_offset":"15.5%","y_scale":35,"colour":"brown"},
+                                    "l2":{"bit":4,"y_offset":"28%","y_scale":35,"colour":"red"},
+                                    "l3":{"bit":8,"y_offset":"40.5%","y_scale":35,"colour":"orange"},
+                                    "l4":{"bit":16,"y_offset":"53%","y_scale":35,"colour":"yellow"},
+                                    "l5":{"bit":32,"y_offset":"65.5%","y_scale":35,"colour":"green"},
+                                    "l6":{"bit":64,"y_offset":"78%","y_scale":35,"colour":"aqua"},
+                                    "l7":{"bit":128,"y_offset":"90.5%","y_scale":35,"colour":"purple"}
+                                },
+                                "on_scroll_up":["inc_ba_range(2)"],
+                                "on_scroll_down":["inc_ba_range(-2)"],
+                                "refs":{
+                                    "data":"ba",
+                                    "data_refresh":"data_ready",
+                                    "range":"ba_range",
+                                    "position":"ba_pos",
+                                    "disable":"running",
+                                    "frequency":"rate"
+                                }
+                            },
+                            "minimap":
+                            {
+                                "type":"Mini_Map",
+                                "pos":[118,528],
+                                "size":[1000,100],
+                                "group":"display",
+                                "traces":{
+                                    "l0":{"bit":1, "y_offset":"3%", "y_scale":5, "colour":"white"},
+                                    "l1":{"bit":2, "y_offset":"15.5%", "y_scale":5, "colour":"brown"},
+                                    "l2":{"bit":4, "y_offset":"28%", "y_scale":5, "colour":"red"},
+                                    "l3":{"bit":8, "y_offset":"40.5%", "y_scale":5, "colour":"orange"},
+                                    "l4":{"bit":16, "y_offset":"53%", "y_scale":5, "colour":"yellow"},
+                                    "l5":{"bit":32, "y_offset":"65.5%", "y_scale":5, "colour":"green"},
+                                    "l6":{"bit":64, "y_offset":"78%", "y_scale":5, "colour":"aqua"},
+                                    "l7":{"bit":128, "y_offset":"90.5%", "y_scale":5, "colour":"purple"}
+                                },
+                                "on_scroll_up":["inc_ba_range(2)"],
+                                "on_scroll_down":["inc_ba_range(-2)"],
+                                "on_lmb_held":["set_ba_pos(m_x)"],
+                                "refs":{
+                                    "data":"ba",
+                                    "data_refresh":"data_ready",
+                                    "range":"ba_range",
+                                    "position":"ba_pos",
+                                    "deep_scan":"deep_scan",
+                                    "zoom":"ba_zoom",
+                                    "disable":"running"
+                                }
+                            },
+                            "start":
+                            {
+                                "type":"Button",
+                                "group":"buttons",
+                                "size":"big",
+                                "pos":[118,638],
+                                "on_click":["stop_start()"],
+                                "strings":{"true":"Stop", "false":"Capture"},
+                                "colours":{"true":"red", "false":"green"},
+                                "refs":{"text":"running", "colour":"running"}
+                            },
+                            "l0":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,10],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(0, 1)"],
+                                "refs":{"text":{"trigger":0}, "disable":"running"}
+                            },
+                            "l1":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,40],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(1, 1)"],
+                                "refs":{"text":{"trigger":1}, "disable":"running"}
+                            },
+                            "l2":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,70],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(2, 1)"],
+                                "refs":{"text":{"trigger":2}, "disable":"running"}
+                            },
+                            "l3":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,100],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(3, 1)"],
+                                "refs":{"text":{"trigger":3}, "disable":"running"}
+                            },
+                            "l4":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,130],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(4, 1)"],
+                                "refs":{"text":{"trigger":4}, "disable":"running"}
+                            },
+                            "l5":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,160],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(5, 1)"],
+                                "refs":{"text":{"trigger":5}, "disable":"running"}
+                            },
+                            "l6":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,190],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(6, 1)"],
+                                "refs":{"text":{"trigger":6}, "disable":"running"}
+                            },
+                            "l7":
+                            {
+                                "type":"Button",
+                                "size":"tiny",
+                                "pos":[10,220],
+                                "strings":{"0":"L", "1":"H", "2":""},
+                                "on_click":["inc_trigger(7, 1)"],
+                                "refs":{"text":{"trigger":7}, "disable":"running"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

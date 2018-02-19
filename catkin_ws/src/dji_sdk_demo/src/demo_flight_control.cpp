@@ -11,7 +11,7 @@
 
 #include "dji_sdk_demo/demo_flight_control.h"
 #include "dji_sdk/dji_sdk.h"
-#include <math.h>      
+#include <math.h>
 #define PI 3.14159265
 
 const float deg2rad = C_PI/180.0;
@@ -56,14 +56,14 @@ int main(int argc, char** argv)
   sdk_ctrl_authority_service = nh.serviceClient<dji_sdk::SDKControlAuthority> ("dji_sdk/sdk_control_authority");
   drone_task_service         = nh.serviceClient<dji_sdk::DroneTaskControl>("dji_sdk/drone_task_control");
   query_version_service      = nh.serviceClient<dji_sdk::QueryDroneVersion>("dji_sdk/query_drone_version");
-
-  bool obtain_control_result = obtain_control();
-  bool takeoff_result;
-  if(is_M100())
-  { 
-    ROS_INFO("M100 taking off!");
-    takeoff_result = M100monitoredTakeoff();
-  }
+  
+  //bool obtain_control_result = obtain_control();
+  //bool takeoff_result;
+  //if(is_M100())
+  //{ 
+  //  ROS_INFO("M100 taking off!");
+  //  takeoff_result = M100monitoredTakeoff();
+  //}
   double param, result;
   param = 45.0;
   result = tan ( param * PI / 180.0 );
