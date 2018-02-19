@@ -1,0 +1,12 @@
+{
+    "cfg":
+    {
+        "globals":
+        {
+            "current_mode":"lobby",
+            "resolution":[1280,720],
+            "fullscreen":false,
+            "fast_widgets":true
+        }
+    }
+}
