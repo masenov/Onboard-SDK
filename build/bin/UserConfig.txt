@@ -1,4 +1,4 @@
 app_id : 1039512
 app_key : 93d06fd31a2da2559c9977932b0817052f4f50142a68fa70e340ce5ad5803996
-device : /dev/ttyS0
-baudrate : 115200
+device : /dev/ttyTHS2
+baudrate : 230400

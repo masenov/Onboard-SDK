@@ -47,6 +47,15 @@ main(int argc, char** argv)
   }
 
   setupMSDKParsing(vehicle, &linuxEnvironment);
+  ACK::ErrorCode ack;
+  AckReturnToMobile mobileAck;
+  // Find out which was called: obtain or release
+  mobileAck.cmdID = 0x02;
+  mobileAck.ack = static_cast<uint16_t>(ack.data);
+  vehicle->moc->sendDataToMSDK(reinterpret_cast<uint8_t*>(&mobileAck),
+                                  sizeof(mobileAck));
+  // Display ACK message
+  ACK::getErrorCodeMessage(ack, __func__);
 
   return 0;
 }
